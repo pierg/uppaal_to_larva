@@ -152,7 +152,7 @@ public class UppaalParser {
     }
     
     private String getUppaalCode(Document document) {
-        String resultat="";
+        
 	Element root = document.getDocumentElement();
 	Element gobalDeclaration = (Element) (root.getElementsByTagName("declaration").item(0));
 	Element template = (Element) (root.getElementsByTagName("template").item(0));
@@ -168,24 +168,29 @@ public class UppaalParser {
         
         int factor = getFactor(document);
         
-        Pattern p = Pattern.compile(_startParsing+"(?s).{1,}"+_endParsing);
-        Matcher m = p.matcher(code);
-        
-        while(m.find()){
-            String chaine = m.group();
-            Pattern p2 = Pattern.compile("[0-9]+");
-            Matcher m2 = p2.matcher(chaine);
-            while(m2.find()){
-                int entier = Integer.parseInt(m2.group());
-                double d = (double)entier/factor;
-                chaine = chaine.replaceFirst("(?<!\\.)\\d+(?!\\.)", Double.toString(d));
-            }
-            resultat+=chaine;
-        }
-        
-	return resultat;
+	return convertAllIntegersInDoubles(factor, code);
     }
 
+    private String convertAllIntegersInDoubles(int factor, String nonConvertedString){
+        String convertedString="";
+        
+        Pattern parsingPattern = Pattern.compile(_startParsing+"(?s).{1,}"+_endParsing);
+        Matcher parsingMatcher = parsingPattern.matcher(nonConvertedString);
+        
+        while(parsingMatcher.find()){
+            String parsingResult = parsingMatcher.group();
+            Pattern intPattern = Pattern.compile("[0-9]+");
+            Matcher intMatcher = intPattern.matcher(parsingResult);
+            while(intMatcher.find()){
+                int intResult = Integer.parseInt(intMatcher.group());
+                parsingResult = parsingResult.replaceFirst("(?<!\\.)\\d+(?!\\.)", Double.toString((double)intResult/factor));
+            }
+            convertedString+=parsingResult;
+        }
+        
+        return convertedString;
+    }
+    
     private List<State> getStates(Document document) {
 	Element root = document.getDocumentElement();
 	NodeList locations = root.getElementsByTagName("location");
