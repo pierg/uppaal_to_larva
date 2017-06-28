@@ -171,6 +171,12 @@ public class UppaalParser {
 	return convertAllIntegersInDoubles(factor, code);
     }
 
+    /**
+     * Divide all the integers of a string by a factor and convert them in doubles
+     * @param factor the factor we divide the integers with
+     * @param nonConvertedString the string we want to convert
+     * @return the string converted
+     */
     private String convertAllIntegersInDoubles(int factor, String nonConvertedString){
         String convertedString="";
         
