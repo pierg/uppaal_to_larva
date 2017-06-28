@@ -9,7 +9,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.*;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -27,14 +26,10 @@ import org.xml.sax.SAXException;
 public class UppaalParser {
     final private String _filename;
     final private String _destination;
-    final private String _startParsing;
-    final private String _endParsing;
 
     public UppaalParser(String filename, String destination) {
 	_filename = filename;
 	_destination = destination;
-        _startParsing = "\\/\\*start parsing\\*\\/";
-        _endParsing = "\\/\\*end parsing\\*\\/";
     }
 
     public void parseFile() throws IOException, ParserConfigurationException, SAXException {
@@ -42,6 +37,9 @@ public class UppaalParser {
 
 	String javaDocument = getJavaDocument(document);
 	String larvaDocument = getLarvaDocument(document);
+                
+        System.out.println(javaDocument);
+        System.out.println(larvaDocument);
 		
         List<String> javaList = Arrays.asList(javaDocument.split("\\n"));
         List<String> larvaList = Arrays.asList(larvaDocument.split("\\n"));
@@ -132,27 +130,12 @@ public class UppaalParser {
     private String mergeCodes(String template, String upaallCode, String replacedPattern) {
 	return template.replaceAll(replacedPattern, upaallCode);
     }
-	
-    
-    private int getFactor(Document document){
-        Element root = document.getDocumentElement();
-        Element globalDeclaration = (Element) (root.getElementsByTagName("declaration")).item(0);
-        
-        String code = globalDeclaration.getTextContent();
-        
-        Pattern p = Pattern.compile("int factor=[0-9]{1,}");
-        Matcher m = p.matcher(code);
-        if(m.find()){
-            String[] strings = m.group().split("=");
-            
-            return Integer.parseInt(strings[1]);
-        }else{
-            return 1;
-        }
-    }
-    
+
+	/*
+	 * Get the code of the declarations of variables and functions in Uppaal and
+	 * transform it in Java
+	 */
     private String getUppaalCode(Document document) {
-        String resultat="";
 	Element root = document.getDocumentElement();
 	Element gobalDeclaration = (Element) (root.getElementsByTagName("declaration").item(0));
 	Element template = (Element) (root.getElementsByTagName("template").item(0));
@@ -165,25 +148,8 @@ public class UppaalParser {
 	code = code.replaceAll("void", "public static void");
 	code = code.replaceAll("bool", "public static bool");
 	code = code.replaceAll("\\[(.*?,.*?)\\]", "");
-        
-        int factor = getFactor(document);
-        
-        Pattern p = Pattern.compile(_startParsing+"(?s).{1,}"+_endParsing);
-        Matcher m = p.matcher(code);
-        
-        while(m.find()){
-            String chaine = m.group();
-            Pattern p2 = Pattern.compile("[0-9]+");
-            Matcher m2 = p2.matcher(chaine);
-            while(m2.find()){
-                int entier = Integer.parseInt(m2.group());
-                double d = (double)entier/factor;
-                chaine = chaine.replaceFirst("(?<!\\.)\\d+(?!\\.)", Double.toString(d));
-            }
-            resultat+=chaine;
-        }
-        
-	return resultat;
+
+	return code;
     }
 
     private List<State> getStates(Document document) {
@@ -265,19 +231,20 @@ public class UppaalParser {
 	}
         return stringBuilder.toString();
     }
-    
-    
+
     public static void main(String[] args) {
         if (args.length != 2) {
             System.err.println("Please enter a filename and a destination folder.");
             return;
 	}
-        
+
 	try {
             new UppaalParser(args[0], args[1]).parseFile();
 	} catch (IOException e) {
             System.err.println("Problem with the file.");
-	} catch (ParserConfigurationException | SAXException e) {
+	} catch (ParserConfigurationException e) {
+            System.err.println("Error while reading XML file.");
+	} catch (SAXException e) {
             System.err.println("Error while reading XML file.");
 	}
     }
