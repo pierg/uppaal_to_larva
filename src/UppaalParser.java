@@ -151,8 +151,7 @@ public class UppaalParser {
         }
     }
     
-    private String getUppaalCode(Document document) {
-        
+    private String getUppaalCode(Document document) {        
 	Element root = document.getDocumentElement();
 	Element gobalDeclaration = (Element) (root.getElementsByTagName("declaration").item(0));
 	Element template = (Element) (root.getElementsByTagName("template").item(0));
@@ -167,8 +166,20 @@ public class UppaalParser {
 	code = code.replaceAll("\\[(.*?,.*?)\\]", "");
         
         int factor = getFactor(document);
+     
+        Pattern parsingPattern = Pattern.compile("(?="+_startParsing+")(?s).*?("+_endParsing+")");
+        Matcher parsingMatcher = parsingPattern.matcher(code);
         
-	return convertAllIntegersInDoubles(factor, code);
+        while(parsingMatcher.find()){
+            String stringToParse = parsingMatcher.group();
+            stringToParse = stringToParse.replaceAll(_startParsing+"|"+_endParsing, ""); 
+
+            String stringParsed = convertAllIntegersInDoubles(factor,stringToParse);
+
+            code = code.replaceFirst("(?="+_startParsing+")(?s).*?("+_endParsing+")",stringParsed);
+        }
+        
+        return code;
     }
 
     /**
@@ -180,20 +191,14 @@ public class UppaalParser {
     private String convertAllIntegersInDoubles(int factor, String nonConvertedString){
         String convertedString="";
         
-        Pattern parsingPattern = Pattern.compile(_startParsing+"(?s).{1,}"+_endParsing);
-        Matcher parsingMatcher = parsingPattern.matcher(nonConvertedString);
-        
-        while(parsingMatcher.find()){
-            String parsingResult = parsingMatcher.group();
-            Pattern intPattern = Pattern.compile("[0-9]+");
-            Matcher intMatcher = intPattern.matcher(parsingResult);
-            while(intMatcher.find()){
-                int intResult = Integer.parseInt(intMatcher.group());
-                parsingResult = parsingResult.replaceFirst("(?<!\\.)\\d+(?!\\.)", Double.toString((double)intResult/factor));
-            }
-            convertedString+=parsingResult;
+        Pattern intPattern = Pattern.compile("[0-9]+");
+        Matcher intMatcher = intPattern.matcher(nonConvertedString);
+        while(intMatcher.find()){
+            int intResult = Integer.parseInt(intMatcher.group());
+            nonConvertedString = nonConvertedString.replaceFirst("(?<!\\.)\\d+(?!\\.)", Double.toString((double)intResult/factor));
         }
-        
+        convertedString+=nonConvertedString;
+
         return convertedString;
     }
     
