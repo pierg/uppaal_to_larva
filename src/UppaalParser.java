@@ -179,6 +179,8 @@ public class UppaalParser {
             code = code.replaceFirst("(?="+_startParsing+")(?s).*?("+_endParsing+")",stringParsed);
         }
         
+        code = convertArray(code);
+        
         return code;
     }
 
@@ -200,6 +202,24 @@ public class UppaalParser {
         convertedString+=nonConvertedString;
 
         return convertedString;
+    }
+    
+    /**
+     * Delete all the size of the array for java
+     * @param string the input string
+     * @return the string without the array sizes
+     */
+    private String convertArray(String string){
+        Pattern arrayPattern = Pattern.compile("int .*\\[\\d+\\];");
+        Matcher arrayMatcher = arrayPattern.matcher(string);
+        
+        while(arrayMatcher.find()){
+            String matchedString = arrayMatcher.group();
+            matchedString = matchedString.replaceFirst("\\[\\d+\\]", "\\[\\]");
+            string = string.replaceFirst("int .*\\[\\d+\\];",matchedString);
+        }
+        
+        return string;
     }
     
     private List<State> getStates(Document document) {
