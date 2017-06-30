@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,6 +19,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 /**
@@ -29,12 +31,17 @@ public class UppaalParser {
     final private String _destination;
     final private String _startParsing;
     final private String _endParsing;
-
+    final private String _startSimulationValues;
+    final private String _endSimulationValues;
+    
     public UppaalParser(String filename, String destination) {
 	_filename = filename;
 	_destination = destination;
+
         _startParsing = "\\/\\*start parsing\\*\\/";
         _endParsing = "\\/\\*end parsing\\*\\/";
+        _startSimulationValues = "\\/\\*start simulation values\\*\\/";
+        _endSimulationValues = "\\/\\*end simulation values\\*\\/";
     }
 
     public void parseFile() throws IOException, ParserConfigurationException, SAXException {
@@ -120,20 +127,49 @@ public class UppaalParser {
 	return resetTransition;
     }
 
+    /**
+     * Read an XML code from a text file and delete the DOCTYPE tag because of bugs 
+     * @param inputFile the file we want to extract the XML code from
+     * @return the XML string without the DOCTYPE tag
+     */
+    private String readFile(File inputFile){
+        String outputString = "";
+        
+        try (BufferedReader br = new BufferedReader(new FileReader(inputFile))) {
+
+            String sCurrentLine;
+
+            while ((sCurrentLine = br.readLine()) != null) {
+                outputString += sCurrentLine+"\n";
+            }
+        } catch (IOException e) {
+            System.err.println("Exception in readFile method : "+e);
+        }
+        
+        outputString = outputString.replaceFirst("<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>", "");
+        
+        return outputString; 
+    }
+    
     private Document getXMLDocument() throws ParserConfigurationException, SAXException, IOException {
         File xmlFile = new File(_filename);
-	DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-	DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-	Document document = (Document) dBuilder.parse(xmlFile);
-	
-        return document;
+
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        InputSource inputSource = new InputSource(new StringReader(readFile(xmlFile)));
+        
+        return builder.parse(inputSource);
     }
 
     private String mergeCodes(String template, String upaallCode, String replacedPattern) {
 	return template.replaceAll(replacedPattern, upaallCode);
     }
 	
-    
+    /**
+     * Return the factor needed to divide all the integers from the document to convert them in doubles
+     * @param document we extract the factor from
+     * @return the factor
+     */
     private int getFactor(Document document){
         Element root = document.getDocumentElement();
         Element globalDeclaration = (Element) (root.getElementsByTagName("declaration")).item(0);
@@ -158,15 +194,19 @@ public class UppaalParser {
 	Element localDeclaration = (Element) (template.getElementsByTagName("declaration").item(0));
 
 	String code = gobalDeclaration.getTextContent() + localDeclaration.getTextContent();
-
-	code = code.replaceAll("int", "public static int");
-	code = code.replaceAll("double", "public static double");
+	
+        code = convertArray(code);
+        
+        code = code.replaceAll("double", "public static double");
+	code = code.replaceAll("int", "public static double");
 	code = code.replaceAll("void", "public static void");
 	code = code.replaceAll("bool", "public static bool");
 	code = code.replaceAll("\\[(.*?,.*?)\\]", "");
         
         int factor = getFactor(document);
-     
+        
+        code = code.replaceAll(_startSimulationValues+"(?s).*"+_endSimulationValues, "");
+        
         Pattern parsingPattern = Pattern.compile("(?="+_startParsing+")(?s).*?("+_endParsing+")");
         Matcher parsingMatcher = parsingPattern.matcher(code);
         
@@ -178,8 +218,6 @@ public class UppaalParser {
 
             code = code.replaceFirst("(?="+_startParsing+")(?s).*?("+_endParsing+")",stringParsed);
         }
-        
-        code = convertArray(code);
         
         return code;
     }
@@ -313,8 +351,10 @@ public class UppaalParser {
             new UppaalParser(args[0], args[1]).parseFile();
 	} catch (IOException e) {
             System.err.println("Problem with the file.");
+            System.err.println(e);
 	} catch (ParserConfigurationException | SAXException e) {
             System.err.println("Error while reading XML file.");
 	}
-    }
+        
+     }
 }
