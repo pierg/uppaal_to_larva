@@ -5,22 +5,6 @@ Imports
 
 Global{
 
-	Events{
-		rlevent(obs, preobs) = {EchoServer.rlevent()}
-		reset() = {EchoServer.reset()}
-	}
-
-	Property reward{
-
-		States{
-			Normal{<<<UPPAAL_STATES>>>}
-			Starting{start}
-		}
-
-		Transitions{
-			<<<UPPAAL_TRANSITIONS>>>
-		}
-
-	}
+	<<<UPPAAL_PROPERTIES>>>
 
 }

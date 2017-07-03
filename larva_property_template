@@ -1,0 +1,17 @@
+	Events{
+		rlevent(obs, preobs) = {EchoServer.rlevent()}
+		reset() = {EchoServer.reset()}
+	}
+
+	Property <<<UPPAAL_PROPERTY>>>{
+
+		States{
+			Normal{<<<UPPAAL_STATES>>>}
+			Starting{start}
+		}
+
+		Transitions{
+			<<<UPPAAL_TRANSITIONS>>>
+		}
+
+	}

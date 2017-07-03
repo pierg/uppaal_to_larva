@@ -106,6 +106,6 @@ public class EchoServer {
   public void reset() { counter = 0; }
 
   public static void response(){
-    out.println(tot_reward);
+    out.println(reward);
   }
 }
