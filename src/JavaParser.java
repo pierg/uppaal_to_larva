@@ -240,7 +240,7 @@ public class JavaParser {
         Matcher parsingMatcher = parsingPattern.matcher(inputString);
         
         while(parsingMatcher.find()){
-            outputString = parsingMatcher.group().replaceAll("int","double");
+            outputString = parsingMatcher.group().replaceAll("int","public static double");
         }
         
         inputString = inputString.replaceAll("(?="+_startDoublesDeclaration+")(?s).*?("+_endDoublesDeclaration+")",outputString);
@@ -268,17 +268,32 @@ public class JavaParser {
         int factor = getFactor(document);
         
         String code = "int propertiesNumber = "+getPropertiesNumber(document)+";\n"+ globalDeclaration.getTextContent() + localDeclarations;
-	
+        
+        
         getDoubles(code);
         code = convertIntegersInDoubles(factor,code);
 
         code = convertArray(code);
         
-        code = fonction(code);
+        Pattern p = Pattern.compile("(?="+_startFunctions+")(?s).*?("+_endFunctions+")");
+        Matcher m = p.matcher(code);
+        String fonctions = "";
+        
+        while(m.find()){
+            fonctions += m.group();
+        }
+        
+        code = code.replaceAll(_startFunctions+"(?s).*?"+_endFunctions, "");
+        
+        code = code.replaceAll("int", "public static double");
+        
+        //code = fonction(code);
         
 	code = code.replaceAll("\\[(.*?,.*?)\\]", "");
         
         code = code.replaceAll(_startSimulationValues+"(?s).*"+_endSimulationValues, "");
+        
+        code += fonctions;
         
         code = modifyDeclarations(code,"int");
         code = modifyDeclarations(code, "void");

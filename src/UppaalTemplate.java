@@ -87,7 +87,7 @@ public class UppaalTemplate {
     }
 
     public String getLARVAResetTransitionsCode() {
-        String statement = "->start[reset()\\\\\\\\\\EchoServer.reward = 0;EchoServer.propertyChecked();]\n";
+        String statement = "->start[reset()\\\\\\\\\\\\\\\\\\\\EchoServer.tot_reward = 0;EchoServer.propertyChecked();]\n";
         String resetTransition = "start" + statement;
 
         resetTransition = _states.stream().map((state) -> "\t\t\t" + state + statement).reduce(resetTransition, String::concat);
@@ -96,7 +96,7 @@ public class UppaalTemplate {
     }
     
     public String getLARVADefaultTransitionsCode() {
-        String statement = "->default[rlevent()\\\\\\\\\\\\\\\\\\\\EchoServer.reward = 0;EchoServer.resetAgent();]\n";
+        String statement = "->default[rlevent()\\\\\\\\\\\\\\\\\\\\EchoServer.tot_reward = 0;EchoServer.resetAgent();]\n";
         String defaultTransition = "\t\t\tstart" + statement;
 
         defaultTransition = _states.stream().map((state) -> "\t\t\t" + state + statement).reduce(defaultTransition, String::concat);
