@@ -202,7 +202,7 @@ public class JavaParser {
                         bool = true;
                     }
                 }
-                if(bool){ 
+                if(bool){
                     outputString += convertAllIntegersInDoubles(factor, sCurrentLine) + "\n";
                 }else{
                     outputString += sCurrentLine + "\n";
@@ -236,14 +236,14 @@ public class JavaParser {
     private String fonction(String inputString){
         String outputString = "";
         
-        Pattern parsingPattern = Pattern.compile("(?="+_startEnvironmentValues+")(?s).*?("+_endEnvironmentValues+")");
+        Pattern parsingPattern = Pattern.compile("(?="+_startDoublesDeclaration+")(?s).*?("+_endDoublesDeclaration+")");
         Matcher parsingMatcher = parsingPattern.matcher(inputString);
         
         while(parsingMatcher.find()){
             outputString = parsingMatcher.group().replaceAll("int","double");
         }
         
-        inputString = inputString.replaceAll("(?="+_startEnvironmentValues+")(?s).*?("+_endEnvironmentValues+")",outputString);
+        inputString = inputString.replaceAll("(?="+_startDoublesDeclaration+")(?s).*?("+_endDoublesDeclaration+")",outputString);
         
         return inputString;
     }
@@ -283,6 +283,8 @@ public class JavaParser {
         code = modifyDeclarations(code,"int");
         code = modifyDeclarations(code, "void");
         code = modifyDeclarations(code, "bool");
+        
+        code = code.replaceAll("bool","boolean");
         
         return code;
     }
