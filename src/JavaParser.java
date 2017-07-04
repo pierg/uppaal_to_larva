@@ -41,6 +41,10 @@ public class JavaParser {
     private ArrayList<String> _doubles;
     final private String _startDoublesDeclaration;
     final private String _endDoublesDeclaration;
+    final private String _startEnvironmentValues;
+    final private String _endEnvironmentValues;
+    final private String _startFunctions;
+    final private String _endFunctions;
     
     JavaParser(){
         _startParsing = "\\/\\*start parsing\\*\\/";
@@ -50,6 +54,10 @@ public class JavaParser {
         _startDoublesDeclaration = "\\/\\*start doubles declaration\\*\\/";
         _endDoublesDeclaration = "\\/\\*end doubles declaration\\*\\/";
         _doubles = new ArrayList<>();
+        _startEnvironmentValues = "\\/\\*start environment values\\*\\/";
+        _endEnvironmentValues = "\\/\\*end environment values\\*\\/";
+        _startFunctions = "\\/\\*start functions\\*\\/";
+        _endFunctions = "\\/\\*end functions\\*\\/";
     }
     
     /**
@@ -105,7 +113,7 @@ public class JavaParser {
     }
     
     private void getDoubles(String inputString){
-        Pattern parsingPattern = Pattern.compile("(?="+_startDoublesDeclaration+")(?s).*?("+_endDoublesDeclaration+")");
+        Pattern parsingPattern = Pattern.compile("(?="+_startEnvironmentValues+")(?s).*?("+_endEnvironmentValues+")");
         Matcher parsingMatcher = parsingPattern.matcher(inputString);
         
         while(parsingMatcher.find()){
@@ -151,7 +159,7 @@ public class JavaParser {
         Pattern p = Pattern.compile("int factor=[0-9]{1,}");
         Matcher m = p.matcher(code);
         if(m.find()){
-            String[] strings = m.group().split("=");
+            String[] strings = m.group().split("=|;");
             
             return Integer.parseInt(strings[1]);
         }else{
@@ -170,14 +178,76 @@ public class JavaParser {
         
         Pattern intPattern = Pattern.compile("[0-9]+");
         Matcher intMatcher = intPattern.matcher(nonConvertedString);
-        while(intMatcher.find()){
+        if(intMatcher.find()){
             int intResult = Integer.parseInt(intMatcher.group());
-            nonConvertedString = nonConvertedString.replaceFirst("(?<!\\.)\\d+(?!\\.)", Double.toString((double)intResult/factor));
+            nonConvertedString = nonConvertedString.replaceAll("((?<!\\[)(?<!\\.))\\d+(?!\\])(?!\\.)", Double.toString((double)intResult/factor));
         }
         convertedString+=nonConvertedString;
 
         return convertedString;
     }
+    
+    private String convertIntegersInDoubles(int factor, String inputString){
+        String outputString = "";
+       
+        try (BufferedReader br = new BufferedReader(new StringReader(inputString))) {
+
+            String sCurrentLine;
+
+            while ((sCurrentLine = br.readLine()) != null) {
+                boolean bool = false;
+                String[] tab = sCurrentLine.split(" |;|\\[|\\]|=|\\)|\\(");
+                for(int i=0;i<tab.length;i++){
+                    if(_doubles.contains(tab[i])){
+                        bool = true;
+                    }
+                }
+                if(bool){
+                    outputString += convertAllIntegersInDoubles(factor, sCurrentLine) + "\n";
+                }else{
+                    outputString += sCurrentLine + "\n";
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Exception in readFile method : "+e);
+        }
+        
+        //System.out.println(outputString);
+        
+        return outputString;
+    }
+    
+    private String modifyDeclarations(String inputString, String type){
+        
+        Pattern p = Pattern.compile(type+" \\w+(?=\\()");
+        Matcher m = p.matcher(inputString);
+        
+        while(m.find()){
+            String s = m.group();
+            if(type.equals("int")){
+                s = s.replaceFirst("int", "double");
+            }
+            inputString = inputString.replaceAll("(?<!public static )"+m.group(),"public static "+s);
+        }
+        
+        return inputString;
+    }
+    
+    private String fonction(String inputString){
+        String outputString = "";
+        
+        Pattern parsingPattern = Pattern.compile("(?="+_startEnvironmentValues+")(?s).*?("+_endEnvironmentValues+")");
+        Matcher parsingMatcher = parsingPattern.matcher(inputString);
+        
+        while(parsingMatcher.find()){
+            outputString = parsingMatcher.group().replaceAll("int","double");
+        }
+        
+        inputString = inputString.replaceAll("(?="+_startEnvironmentValues+")(?s).*?("+_endEnvironmentValues+")",outputString);
+        
+        return inputString;
+    }
+    
     
     private String getUppaalCode(Document document) {        
 	Element root = document.getDocumentElement();
@@ -194,44 +264,25 @@ public class JavaParser {
                 localDeclarations += localDeclaration.getTextContent();
             }
         }
-        //System.out.println(localDeclarations);
-        
-        //Element template = (Element) (root.getElementsByTagName("template").item(0));
-	//Element localDeclaration = (Element) (template.getElementsByTagName("declaration").item(0));
-
-	//String code = globalDeclaration.getTextContent() + localDeclaration.getTextContent();
-        
-        
-        String code = "int propertiesNumber = "+getPropertiesNumber(document)+";\n"+ globalDeclaration.getTextContent() + localDeclarations;
-	
-        //System.out.println(code);
-        getDoubles(code);
-        for(int i=0; i<_doubles.size();i++){
-            System.out.println(_doubles.get(i));
-        }
-        code = convertArray(code);
-        
-        code = code.replaceAll("double", "public static double");
-	code = code.replaceAll("int", "public static double");
-	code = code.replaceAll("void", "public static void");
-	code = code.replaceAll("bool", "public static bool");
-	code = code.replaceAll("\\[(.*?,.*?)\\]", "");
         
         int factor = getFactor(document);
         
+        String code = "int propertiesNumber = "+getPropertiesNumber(document)+";\n"+ globalDeclaration.getTextContent() + localDeclarations;
+	
+        getDoubles(code);
+        code = convertIntegersInDoubles(factor,code);
+
+        code = convertArray(code);
+        
+        code = fonction(code);
+        
+	code = code.replaceAll("\\[(.*?,.*?)\\]", "");
+        
         code = code.replaceAll(_startSimulationValues+"(?s).*"+_endSimulationValues, "");
         
-        Pattern parsingPattern = Pattern.compile("(?="+_startParsing+")(?s).*?("+_endParsing+")");
-        Matcher parsingMatcher = parsingPattern.matcher(code);
-        
-        while(parsingMatcher.find()){
-            String stringToParse = parsingMatcher.group();
-            stringToParse = stringToParse.replaceAll(_startParsing+"|"+_endParsing, ""); 
-
-            String stringParsed = convertAllIntegersInDoubles(factor,stringToParse);
-
-            code = code.replaceFirst("(?="+_startParsing+")(?s).*?("+_endParsing+")",stringParsed);
-        }
+        code = modifyDeclarations(code,"int");
+        code = modifyDeclarations(code, "void");
+        code = modifyDeclarations(code, "bool");
         
         return code;
     }
