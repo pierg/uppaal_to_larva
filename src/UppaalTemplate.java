@@ -33,7 +33,7 @@ public class UppaalTemplate {
         _transitions.add(transition);
     }
 
-    public void retrieveStates(Element template) {
+    public void retrieveStatesFromXML(Element template) {
         NodeList locations = template.getElementsByTagName("location");
 
         for (int i = 0; i < locations.getLength(); i++) {
@@ -45,7 +45,7 @@ public class UppaalTemplate {
         _states.add(new State("0", "default"));
     }
 
-    public void retrieveTransitions(Element template) {
+    public void retrieveTransitionsFromXML(Element template) {
         NodeList transitionNodes = template.getElementsByTagName("transition");
 
         for (int i = 0; i < transitionNodes.getLength(); i++) {
@@ -53,18 +53,18 @@ public class UppaalTemplate {
             String idFrom = ((Element) (transitionNode.getElementsByTagName("source").item(0))).getAttribute("ref");
             String idTo = ((Element) (transitionNode.getElementsByTagName("target").item(0))).getAttribute("ref");
             NodeList labels = transitionNode.getElementsByTagName("label");
-            _transitions.add(getTransitionFromNode(_states, i, idFrom, idTo, labels));
+            _transitions.add(getTransitionFromXMLNode(_states, i, idFrom, idTo, labels));
         }
     }
 
-    public String getStateDeclaration() {
+    public String getLARVAStatesDeclaration() {
         String stateDeclaration = "";
         stateDeclaration = _states.stream().filter((state) -> (!state._name.equals("start"))).map((state) -> state + " ").reduce(stateDeclaration, String::concat);
 
         return stateDeclaration;
     }
 
-    public String getTransitionsCode() {
+    public String getLARVATransitionsCode() {
         String transitionsCode = "";
         for (Transition tr : _transitions) {
             transitionsCode += "\t\t\t" + tr._from + "->" + tr._to;
@@ -86,7 +86,7 @@ public class UppaalTemplate {
         return transitionsCode;
     }
 
-    public String getResetTransitions() {
+    public String getLARVAResetTransitionsCode() {
         String statement = "->start[reset()\\\\\\\\\\EchoServer.reward = 0;EchoServer.propertyChecked();]\n";
         String resetTransition = "start" + statement;
 
@@ -95,7 +95,7 @@ public class UppaalTemplate {
         return resetTransition;
     }
     
-    public String getDefaultTransitions() {
+    public String getLARVADefaultTransitionsCode() {
         String statement = "->default[rlevent()\\\\\\\\\\\\\\\\\\\\EchoServer.reward = 0;EchoServer.resetAgent();]\n";
         String defaultTransition = "\t\t\tstart" + statement;
 
@@ -104,11 +104,11 @@ public class UppaalTemplate {
         return defaultTransition;
     }
 
-    public String getProperty() {
+    public String getPropertyName() {
         return _property;
     }
 
-    private Transition getTransitionFromNode(List<State> states, int i, String idFrom, String idTo, NodeList labels) {
+    private Transition getTransitionFromXMLNode(List<State> states, int i, String idFrom, String idTo, NodeList labels) {
         State from = new State();
         State to = new State();
         String guard = new String();

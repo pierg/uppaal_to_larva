@@ -110,8 +110,8 @@ public class LARVAParser {
             }
             
             UppaalTemplate uppaalTemplate = new UppaalTemplate(name.getTextContent());
-            uppaalTemplate.retrieveStates(template);
-            uppaalTemplate.retrieveTransitions(template);
+            uppaalTemplate.retrieveStatesFromXML(template);
+            uppaalTemplate.retrieveTransitionsFromXML(template);
             uppaalTemplates.add(uppaalTemplate);
         }
         
@@ -126,10 +126,10 @@ public class LARVAParser {
         List<UppaalTemplate> uppaalTemplates = getUppaalTemplates(document);
 
         larvaProperties = uppaalTemplates.stream().map((UppaalTemplate uppaalTemplate) -> {
-            String stateDeclaration = uppaalTemplate.getStateDeclaration();
-            String transitionsCode = uppaalTemplate.getResetTransitions() + uppaalTemplate.getTransitionsCode() + uppaalTemplate.getDefaultTransitions();
+            String stateDeclaration = uppaalTemplate.getLARVAStatesDeclaration();
+            String transitionsCode = uppaalTemplate.getLARVAResetTransitionsCode() + uppaalTemplate.getLARVATransitionsCode() + uppaalTemplate.getLARVADefaultTransitionsCode();
             String larvaProperty;
-            larvaProperty = mergeCodes(larvaPropertyTemplate, uppaalTemplate.getProperty(), "<<<UPPAAL_PROPERTY>>>");
+            larvaProperty = mergeCodes(larvaPropertyTemplate, uppaalTemplate.getPropertyName(), "<<<UPPAAL_PROPERTY>>>");
             larvaProperty = mergeCodes(larvaProperty, stateDeclaration, "<<<UPPAAL_STATES>>>");
             larvaProperty = mergeCodes(larvaProperty, transitionsCode, "<<<UPPAAL_TRANSITIONS>>>");
 
