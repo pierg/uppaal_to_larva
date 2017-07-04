@@ -4,7 +4,12 @@ Imports
 }
 
 Global{
+        
+	Events{
+		rlevent(obs, preobs) = {EchoServer.rlevent()}
+		reset() = {EchoServer.reset()}
+	}
 
-	<<<UPPAAL_PROPERTIES>>>
+<<<UPPAAL_PROPERTIES>>>
 
 }
