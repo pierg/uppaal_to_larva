@@ -38,6 +38,8 @@ import org.json.*;
 
 public class EchoServer {
   static PrintWriter out;
+  private static boolean isReset;
+  private static int propertiesChecked = 0;
 
   <<<UPPAAL_CODE>>>
 
@@ -50,6 +52,7 @@ public class EchoServer {
 
     int portNumber = Integer.parseInt(args[0]);
 
+
     try {
       ServerSocket serverSocket = new ServerSocket(Integer.parseInt(args[0]));
       while(true){
@@ -60,18 +63,11 @@ public class EchoServer {
 
         String inputLine;
 
-        // This loop guarantees that only the messges that are not null are
-        // read. readLine() keeps reading null values in the socket until
-        // the client program writes anything else in the socket. The server
-        // finishes when the client finishes its executing. The server is
-        // able to detect that the client closed the connection to the
-        // socket.
         while ((inputLine = in.readLine()) != null) {
-          System.out.println("Message receive: " + inputLine);
+          isReset = false;
+          propertiesChecked = 0;
 
           EchoServer a = new EchoServer();
-
-
           if(inputLine.equals("reset")){
             a.reset();
             continue;
@@ -90,22 +86,68 @@ public class EchoServer {
     }
   }
 
+  /**
+   *  Get datas from environnement with JSON message
+   */
   public static void prepareResponse(String message){
+    JSONObject obj = new JSONObject(message);
+    JSONObject obs = (JSONObject)obj.get("obs");
+    JSONObject obs_pre = (JSONObject)obj.get("obs_pre");
+    JSONObject action = (JSONObject)obj.get("action");
 
-    String[] parts = message.split(":");
-    speedX = Double.parseDouble(parts[0]);
-    angle = Double.parseDouble(parts[1]);
-    trackPos = Double.parseDouble(parts[2]);
-    damage = Double.parseDouble(parts[3]);
-    lastDamage = Double.parseDouble(parts[4]);
-    lastAngle = Double.parseDouble(parts[5]);
+    JSONArray jsonTrack = (JSONArray)obs.get("track");
+    JSONArray jsonTrack_pre = (JSONArray)obs_pre.get("track");
+    JSONArray jsonOpponents = (JSONArray)obs.get("opponents");
+    JSONArray jsonOpponents_pre = (JSONArray)obs_pre.get("opponents");
+
+    track = new double[jsonTrack.length()];
+    track_pre = new double[jsonTrack.length()];
+    opponents = new double[jsonOpponents.length()];
+    opponents_pre = new double[jsonOpponents.length()];
+
+    for (int i = 0; i < jsonTrack.length(); i++) {
+      track[i] = jsonTrack.getDouble(i);
+      track_pre[i] = jsonTrack_pre.getDouble(i);
+    }
+
+    for (int i = 0; i < jsonOpponents.length(); i++) {
+      opponents[i] = jsonOpponents.getDouble(i);
+      opponents_pre[i] = jsonOpponents_pre.getDouble(i);
+    }    
+
+    speedX = obs.getDouble("speedX");
+    angle = obs.getDouble("angle");
+    trackPos = obs.getDouble("trackPos");
+    damage = obs.getDouble("damage");
+
+    speedX_pre = obs_pre.getDouble("speedX");
+    angle_pre = obs_pre.getDouble("angle");
+    trackPos_pre = obs_pre.getDouble("trackPos");
+    damage_pre = obs_pre.getDouble("damage");
+
+    steer = action.getDouble("steer");
+    accel = action.getDouble("accel");
+    brake = action.getDouble("brake");
   }
 
 
   public void rlevent() {}
-  public void reset() { counter = 0; }
+  public void reset() {}
+
+  public static void propertyChecked(){
+    propertiesChecked++;
+    if(propertiesChecked == propertiesNumber){
+      computeTotalReward();
+      response();
+    }
+  }
 
   public static void response(){
-    out.println(tot_reward);
+    out.println(reward);
+  }
+
+  public static void resetAgent(){
+    isReset = true;
+    out.println("reset");
   }
 }
