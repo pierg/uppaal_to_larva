@@ -202,7 +202,7 @@ public class JavaParser {
                         bool = true;
                     }
                 }
-                if(bool){
+                if(bool){ 
                     outputString += convertAllIntegersInDoubles(factor, sCurrentLine) + "\n";
                 }else{
                     outputString += sCurrentLine + "\n";
