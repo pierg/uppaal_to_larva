@@ -233,21 +233,6 @@ public class JavaParser {
         return inputString;
     }
     
-    private String fonction(String inputString){
-        String outputString = "";
-        
-        Pattern parsingPattern = Pattern.compile("(?="+_startDoublesDeclaration+")(?s).*?("+_endDoublesDeclaration+")");
-        Matcher parsingMatcher = parsingPattern.matcher(inputString);
-        
-        while(parsingMatcher.find()){
-            outputString = parsingMatcher.group().replaceAll("int","public static double");
-        }
-        
-        inputString = inputString.replaceAll("(?="+_startDoublesDeclaration+")(?s).*?("+_endDoublesDeclaration+")",outputString);
-        
-        return inputString;
-    }
-    
     
     private String getUppaalCode(Document document) {        
 	Element root = document.getDocumentElement();
@@ -286,8 +271,6 @@ public class JavaParser {
         code = code.replaceAll(_startFunctions+"(?s).*?"+_endFunctions, "");
         
         code = code.replaceAll("int", "public static double");
-        
-        //code = fonction(code);
         
 	code = code.replaceAll("\\[(.*?,.*?)\\]", "");
         
