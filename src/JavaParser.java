@@ -34,25 +34,17 @@ import org.xml.sax.SAXException;
  */
 public class JavaParser {
 
-    final private String _startParsing;
-    final private String _endParsing;
     final private String _startSimulationValues;
     final private String _endSimulationValues;
     private ArrayList<String> _doubles;
-    final private String _startDoublesDeclaration;
-    final private String _endDoublesDeclaration;
     final private String _startEnvironmentValues;
     final private String _endEnvironmentValues;
     final private String _startFunctions;
     final private String _endFunctions;
     
     JavaParser(){
-        _startParsing = "\\/\\*start parsing\\*\\/";
-        _endParsing = "\\/\\*end parsing\\*\\/";
          _startSimulationValues = "\\/\\*start simulation values\\*\\/";
         _endSimulationValues = "\\/\\*end simulation values\\*\\/";
-        _startDoublesDeclaration = "\\/\\*start doubles declaration\\*\\/";
-        _endDoublesDeclaration = "\\/\\*end doubles declaration\\*\\/";
         _doubles = new ArrayList<>();
         _startEnvironmentValues = "\\/\\*start environment values\\*\\/";
         _endEnvironmentValues = "\\/\\*end environment values\\*\\/";
@@ -212,8 +204,6 @@ public class JavaParser {
             System.err.println("Exception in readFile method : "+e);
         }
         
-        //System.out.println(outputString);
-        
         return outputString;
     }
     
@@ -327,7 +317,7 @@ public class JavaParser {
 		
         List<String> javaList = Arrays.asList(javaDocument.split("\\n"));
 	
-        Path javaPath = Paths.get(destination+".java");
+        Path javaPath = Paths.get(destination+"/EchoServer.java");
         
         Files.write(javaPath, javaList, Charset.forName("UTF-8"));
     }

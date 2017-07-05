@@ -147,7 +147,7 @@ public class LARVAParser {
 
         List<String> larvaList = Arrays.asList(larvaDocument.split("\\n"));
 
-        Path larvaPath = Paths.get(destination + ".lrv");
+        Path larvaPath = Paths.get(destination + "/rewardautomaton.lrv");
 
         Files.write(larvaPath, larvaList, Charset.forName("UTF-8"));
     }

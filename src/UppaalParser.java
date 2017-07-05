@@ -28,15 +28,27 @@ import org.xml.sax.SAXException;
  */
 public class UppaalParser {
         
+    @SuppressWarnings("empty-statement")
     public static void main(String[] args) {
         if (args.length != 2) {
             System.err.println("Please enter a filename and a destination folder.");
             return;
 	}
         
-	try {
-            new JavaParser().parseFile(args[0], args[1]);
+	try {         
+            Runtime rt = Runtime.getRuntime();
+            String [] tab = {"/bin/sh", "-c", "mkdir "+args[1]};
+            rt.exec(tab);
+            
+            String [] tab2 = {"/bin/sh", "-c", "mkdir "+args[1]+"/SocketServerPackage"};
+            rt.exec(tab2);
+            
+            new JavaParser().parseFile(args[0], args[1]+"/SocketServerPackage");
             new LARVAParser().parseFile(args[0], args[1]);
+            
+            String [] tab3 = {"/bin/sh", "-c", "cp ./Makefile "+args[1]+"/"};
+            rt.exec(tab3);
+            
 	} catch (IOException e) {
             System.err.println("Problem with the file.");
             System.err.println(e);
