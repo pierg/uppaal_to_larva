@@ -16,6 +16,7 @@ import org.w3c.dom.NodeList;
 public class UppaalTemplate {
 
     private final String _property;
+
     private final List<State> _states;
     private final List<Transition> _transitions;
 
@@ -32,6 +33,14 @@ public class UppaalTemplate {
     public void addTransition(Transition transition) {
         _transitions.add(transition);
     }
+    
+    public List<State> getStates(){
+        return _states;
+    }
+    
+    public List<Transition> getTransitions(){
+        return _transitions;
+    }
 
     public void retrieveStatesFromXML(Element template) {
         NodeList locations = template.getElementsByTagName("location");
@@ -41,7 +50,7 @@ public class UppaalTemplate {
             String state = location.getTextContent();
             _states.add(new State(location.getAttribute("id"), state.trim()));
         }
-        
+
         _states.add(new State("0", "default"));
     }
 
@@ -76,9 +85,9 @@ public class UppaalTemplate {
             }
 
             if (!tr._assignment.equals("") && !tr._assignment.equals("none")) {
-                transitionsCode += "\\\\\\\\\\EchoServer." + tr._assignment + ";EchoServer.propertyChecked();]\n";
+                transitionsCode += "\\\\\\\\\\EchoServer." + tr._assignment + ";EchoServer.propertyChecked();EchoServer.c_" + _property + "_" + tr._to._name + "++;]\n";
             } else {
-                transitionsCode += "\\\\\\\\\\EchoServer.propertyChecked();]\n";
+                transitionsCode += "\\\\\\\\\\EchoServer.propertyChecked();EchoServer.c_" + _property + "_" + tr._to._name + "++;]\n";
             }
 
         }
@@ -87,20 +96,20 @@ public class UppaalTemplate {
     }
 
     public String getLARVAResetTransitionsCode() {
-        String statement = "->start[reset()\\\\\\\\\\\\\\\\\\\\EchoServer.tot_reward = 0;EchoServer.propertyChecked();]\n";
+        String statement = "->start[reset()\\\\\\\\\\\\\\\\\\\\EchoServer.tot_reward = 0;EchoServer.resetAgent();]\n";
         String resetTransition = "start" + statement;
 
         resetTransition = _states.stream().map((state) -> "\t\t\t" + state + statement).reduce(resetTransition, String::concat);
-        
+
         return resetTransition;
     }
-    
+
     public String getLARVADefaultTransitionsCode() {
         String statement = "->default[rlevent()\\\\\\\\\\\\\\\\\\\\EchoServer.tot_reward = 0;EchoServer.resetAgent();]\n";
-        String defaultTransition = "\t\t\tstart" + statement;
+        String defaultTransition = "";
 
         defaultTransition = _states.stream().map((state) -> "\t\t\t" + state + statement).reduce(defaultTransition, String::concat);
-        
+
         return defaultTransition;
     }
 

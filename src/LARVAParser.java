@@ -31,6 +31,8 @@ import org.xml.sax.SAXException;
  * @author Brissy Maxence & Duplessis Vincent
  */
 public class LARVAParser {
+    
+    private List<UppaalTemplate> _uppaalTemplates;
 
     private Document getXMLDocument(String filename) throws ParserConfigurationException, SAXException, IOException {
         File xmlFile = new File(filename);
@@ -123,9 +125,9 @@ public class LARVAParser {
         String larvaPropertyTemplate = getTemplate("larva_property_template");
         String larvaProperties = new String();
         
-        List<UppaalTemplate> uppaalTemplates = getUppaalTemplates(document);
+        _uppaalTemplates = getUppaalTemplates(document);
 
-        larvaProperties = uppaalTemplates.stream().map((UppaalTemplate uppaalTemplate) -> {
+        larvaProperties = _uppaalTemplates.stream().map((UppaalTemplate uppaalTemplate) -> {
             String stateDeclaration = uppaalTemplate.getLARVAStatesDeclaration();
             String transitionsCode = uppaalTemplate.getLARVAResetTransitionsCode() + uppaalTemplate.getLARVATransitionsCode() + uppaalTemplate.getLARVADefaultTransitionsCode();
             String larvaProperty;
@@ -140,7 +142,7 @@ public class LARVAParser {
         return mergeCodes(larvaTemplate, larvaProperties, "<<<UPPAAL_PROPERTIES>>>");
     }
 
-    public void parseFile(String filename, String destination) throws IOException, ParserConfigurationException, SAXException {
+    public List<UppaalTemplate> parseFile(String filename, String destination) throws IOException, ParserConfigurationException, SAXException {
         Document document = getXMLDocument(filename);
 
         String larvaDocument = getLarvaDocument(document);
@@ -150,5 +152,7 @@ public class LARVAParser {
         Path larvaPath = Paths.get(destination + "/rewardautomaton.lrv");
 
         Files.write(larvaPath, larvaList, Charset.forName("UTF-8"));
+        
+        return _uppaalTemplates;
     }
 }

@@ -1,25 +1,7 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.StringReader;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.regex.*;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 /**
@@ -37,17 +19,18 @@ public class UppaalParser {
         
 	try {         
             Runtime rt = Runtime.getRuntime();
-            String [] tab = {"/bin/sh", "-c", "mkdir "+args[1]};
-            rt.exec(tab);
+            String [] mkdirRoot = {"/bin/sh", "-c", "mkdir "+args[1]};
+            rt.exec(mkdirRoot);
             
-            String [] tab2 = {"/bin/sh", "-c", "mkdir "+args[1]+"/SocketServerPackage"};
-            rt.exec(tab2);
+            String [] mkdirJavaFolder = {"/bin/sh", "-c", "mkdir "+args[1]+"/SocketServerPackage"};
+            rt.exec(mkdirJavaFolder);
+               
             
-            new JavaParser().parseFile(args[0], args[1]+"/SocketServerPackage");
-            new LARVAParser().parseFile(args[0], args[1]);
+            List<UppaalTemplate> templates = new LARVAParser().parseFile(args[0], args[1]);
+            new JavaParser(templates).parseFile(args[0], args[1]+"/SocketServerPackage");
             
-            String [] tab3 = {"/bin/sh", "-c", "cp ./Makefile "+args[1]+"/"};
-            rt.exec(tab3);
+            String [] cpMakefile = {"/bin/sh", "-c", "cp ./Makefile "+args[1]+"/"};
+            rt.exec(cpMakefile);
             
 	} catch (IOException e) {
             System.err.println("Problem with the file.");
