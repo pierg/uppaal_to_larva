@@ -180,7 +180,6 @@ public class JavaParser {
         Matcher intMatcher = intPattern.matcher(nonConvertedString);
         while (intMatcher.find()) {
             int intResult = Integer.parseInt(intMatcher.group());
-            System.out.println(intResult);
             nonConvertedString = nonConvertedString.replaceFirst("((?<!\\[)(?<!\\.))\\d+(?!\\])(?!\\d*\\.)", Double.toString((double) intResult / factor));
         }
         convertedString += nonConvertedString;
