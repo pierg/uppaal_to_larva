@@ -154,12 +154,12 @@ public class JavaParser {
 
         String code = globalDeclaration.getTextContent();
 
-        Pattern p = Pattern.compile("int factor=[0-9]{1,}");
+        Pattern p = Pattern.compile("(?i)int factor *= *[0-9]{1,}");
         Matcher m = p.matcher(code);
         if (m.find()) {
             String[] strings = m.group().split("=|;");
 
-            return Integer.parseInt(strings[1]);
+            return Integer.parseInt(strings[1].trim());
         } else {
             return 1;
         }
