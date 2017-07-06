@@ -154,7 +154,7 @@ public class JavaParser {
 
         String code = globalDeclaration.getTextContent();
 
-        Pattern p = Pattern.compile("(?i)int factor *= *[0-9]{1,}");
+        Pattern p = Pattern.compile("int (?i)factor(?-i) *= *[0-9]{1,}");
         Matcher m = p.matcher(code);
         if (m.find()) {
             String[] strings = m.group().split("=|;");
