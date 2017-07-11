@@ -71,6 +71,9 @@ public class EchoServer {
           if(inputLine.equals("reset")){
             a.reset();
             continue;
+          } else if(inputLine.equals("rewards")){
+            a.rewards();
+            continue;
           }
 
           prepareResponse(inputLine);
@@ -140,6 +143,12 @@ public class EchoServer {
       computeTotalReward();
       response();
     }
+  }
+
+  public static void rewards(){
+    String jsonReward = "{\"names\":[\"speedX_rwd\", \"damage_rwd\", \"trackPos_rwd\", \"opponents_ahead_rwd\", \"opponents_left_rwd\", \"opponents_right_rwd\", \"opponents_back_rwd\"], ";
+    jsonReward += "\"values\":[" + speedX_rwd + ", " + damage_rwd + "," + trackPos_rwd + "," + opponents_ahead_rwd + "," + opponents_left_rwd  + "," + opponents_right_rwd + "," + opponents_back_rwd + "]}";
+    out.println(jsonReward);
   }
 
   public static void response(){
