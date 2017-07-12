@@ -1,6 +1,8 @@
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -33,12 +35,12 @@ public class UppaalTemplate {
     public void addTransition(Transition transition) {
         _transitions.add(transition);
     }
-    
-    public List<State> getStates(){
+
+    public List<State> getStates() {
         return _states;
     }
-    
-    public List<Transition> getTransitions(){
+
+    public List<Transition> getTransitions() {
         return _transitions;
     }
 
@@ -75,6 +77,9 @@ public class UppaalTemplate {
 
     public String getLARVATransitionsCode() {
         String transitionsCode = "";
+        String regex = "([a-zA-Z]|\\d|\\(|\\))+(?=( *,*))";
+        Pattern pattern = Pattern.compile(regex);
+
         for (Transition tr : _transitions) {
             transitionsCode += "\t\t\t" + tr._from + "->" + tr._to;
 
@@ -85,7 +90,12 @@ public class UppaalTemplate {
             }
 
             if (!tr._assignment.equals("") && !tr._assignment.equals("none")) {
-                transitionsCode += "\\\\\\\\\\EchoServer." + tr._assignment + ";EchoServer.propertyChecked();EchoServer.c_" + _property + "_" + tr._to._name + "++;]\n";
+                transitionsCode += "\\\\\\\\\\";
+                Matcher matcher = pattern.matcher(tr._assignment);
+                while (matcher.find()) {
+                       transitionsCode += "EchoServer."+ matcher.group() + ";";
+                }
+                transitionsCode += "EchoServer.propertyChecked();EchoServer.c_" + _property + "_" + tr._to._name + "++;]\n";
             } else {
                 transitionsCode += "\\\\\\\\\\EchoServer.propertyChecked();EchoServer.c_" + _property + "_" + tr._to._name + "++;]\n";
             }
