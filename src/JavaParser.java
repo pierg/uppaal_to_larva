@@ -176,11 +176,11 @@ public class JavaParser {
     private String convertAllIntegersInDoubles(int factor, String nonConvertedString) {
         String convertedString = "";
 
-        Pattern intPattern = Pattern.compile("(?<!\\[)[0-9]+(?!\\])");
+        Pattern intPattern = Pattern.compile("(?<!\\[)[0-9]+(?!\\d*\\])");
         Matcher intMatcher = intPattern.matcher(nonConvertedString);
         while (intMatcher.find()) {
             int intResult = Integer.parseInt(intMatcher.group());
-            nonConvertedString = nonConvertedString.replaceFirst("((?<!\\[)(?<!\\.))\\d+(?!\\])(?!\\d*\\.)", Double.toString((double) intResult / factor));
+            nonConvertedString = nonConvertedString.replaceFirst("((?<!\\[)(?<!\\.)(?<!\\.\\d)(?<!\\.\\d{2}))\\d+(?!\\])(?!\\d*\\.)", Double.toString((double) intResult / factor));
         }
         convertedString += nonConvertedString;
 
